@@ -1,0 +1,25 @@
+/* .navbar {
+    position: fixed;
+    width: 100%;
+} */
+
+.navbar-nav .nav-item {
+    margin-left: 15px;
+    color: #212529;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: black;
+    color: white;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 400;
+    padding: 20px;
+}
