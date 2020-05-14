@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous" />
     <title>Lin Lin's website</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <img src="img/logo.png" width="auto" height="150px" />
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+            <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav mr-auto">
@@ -32,14 +32,18 @@
             </ul>
         </div>
     </nav>
-
     <section>
         <h1 class="text-center">WELCOME TO LIN LIN WORLD</h1>
+        <div class="container linlin">
+            <div id="canvas-content" class="linlin-content">
+            </div>
+        </div>
     </section>
     <footer>
         <span> Built with many efforts by <a href="https://github.com/khanhlinhle">Khanh Linh Le</a> :3</span>
         <i class="fas fa-dog"></i>
     </footer>
+    <script src="js/game.js"></script>
 </body>
 
 </html>

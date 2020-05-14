@@ -1,8 +1,3 @@
-.navbar {
-    position: fixed;
-    width: 100%;
-}
-
 .navbar-nav .nav-item {
     margin-left: 15px;
     color: #212529;
@@ -22,4 +17,16 @@ footer {
     font-size: 20px;
     font-weight: 400;
     padding: 10px;
+}
+
+.linlin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.linlin-content {
+    width: 800px;
+    height: 600px;
+    background-color: red;
 }
