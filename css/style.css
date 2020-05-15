@@ -7,7 +7,7 @@
 }
 
 footer {
-    position: fixed;
+    /* position: fixed; */
     left: 0;
     bottom: 0;
     width: 100%;
@@ -29,4 +29,19 @@ footer {
     width: 800px;
     height: 600px;
     background-color: red;
+}
+
+.button-box-reset {
+    border-radius: 10px;
+    font-size: 20px;
+    background-color: #03256c;
+    color: white;
+    font-weight: 400;
+    height: 40px;
+    width: 15%;
+}
+
+.button-box {
+    display: flex;
+    justify-content: space-around;
 }
