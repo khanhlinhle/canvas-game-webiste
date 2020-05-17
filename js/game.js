@@ -1,19 +1,30 @@
 let canvas;
 let ctx;
-let gamerScore;
 
 canvas = document.createElement("canvas");
 ctx = canvas.getContext("2d");
+
 canvas.width = 800;
 canvas.height = 600;
 document.getElementById("canvas-content").appendChild(canvas);
 
-let dinoLeftReady, dinoRightReady, backgroundReady, cactusReady;
-let dinoLeftImg, dinoRightImg, backgroundImg, cactusImg;
+let dinoLeftReady, dinoRightReady, background1Ready, background2Ready, cactus1Ready,
+    cactus2Ready;
+let dinoLeftImg, dinoRightImg, backgroundImg1, backgroundImg2, cactus1Img,
+    cactus2Img;
+let jumpSound, crashSound;
 
 let stepLeft = true;
 let delayUpdate = 0;
 let keysDown = {};
+
+const MAX_BG_X = 800;
+const MIN_BG_X = -800;
+const BG_Y = 0;
+const BG_HEIGTH = 600;
+const BG_WIDTH = 800;
+let bg1X = 0;
+let bg2X = 800;
 
 const DINO_X = 10;
 const DINO_WIDTH = 100;
@@ -24,22 +35,47 @@ let dinoY = 300;
 let isFlying = false;
 let isFlyingUp = true;
 
-const CACTUS_Y = 330;
-const CACTUS_WIDTH = 50;
-const CACTUS_HEIGHT = 90;
+const CACTUS_Y = 345;
+const CACTUS_WIDTH = 35;
+const CACTUS_HEIGHT = 75;
 const MIN_CACTUS_X = -50;
-const MAX_CACTUS_X = 850;
-let cactusX = 850;
+const MAX_CACTUS_X = 1450;
+let cactus1X = 1600;
+let cactus2X = 1600;
+
 let startTime = Date.now();
+let score = 0;
+let bestScore = 0;
+let isPlaying = false;
 
 loadImages();
+loadSounds();
 main();
 setupKeyboardListeners();
 
 delayUpdate = setInterval(() => {
     // left - right - left - right - ...
-    stepLeft = !stepLeft;
+    if (isPlaying) {
+        stepLeft = !stepLeft;
+    }
 }, 100);
+
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.getElementById("canvas-content").appendChild(this.sound);
+
+    this.play = function() {
+        this.sound.play();
+    }
+
+    this.stop = function() {
+        this.sound.pause();
+    }
+}
 
 function loadImages() {
     dinoLeftImg = new Image();
@@ -54,17 +90,34 @@ function loadImages() {
     };
     dinoRightImg.src = "img/dino-R.png";
 
-    backgroundImg = new Image();
-    backgroundImg.onload = function() {
-        backgroundReady = true;
+    backgroundImg1 = new Image();
+    backgroundImg1.onload = function() {
+        background1Ready = true;
     };
-    backgroundImg.src = "img/background.png";
+    backgroundImg1.src = "img/background.png";
 
-    cactusImg = new Image();
-    cactusImg.onload = function() {
-        cactusReady = true;
+    backgroundImg2 = new Image();
+    backgroundImg2.onload = function() {
+        background2Ready = true;
     };
-    cactusImg.src = "img/cactus.png";
+    backgroundImg2.src = "img/background.png";
+
+    cactus1Img = new Image();
+    cactus1Img.onload = function() {
+        cactus1Ready = true;
+    };
+    cactus1Img.src = "img/cactus.png";
+
+    cactus2Img = new Image();
+    cactus2Img.onload = function() {
+        cactus2Ready = true;
+    };
+    cactus2Img.src = "img/cactus.png";
+}
+
+function loadSounds() {
+    jumpSound = new sound("sound/jump.wav");
+    crashSound = new sound("sound/crash.wav");
 }
 
 function setupKeyboardListeners() {
@@ -78,68 +131,107 @@ function setupKeyboardListeners() {
 }
 
 function update() {
+    if (isPlaying) {
+        score = Math.floor((Date.now() - startTime) / 100);
 
-    elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        if (crashCactus()) {
+            jumpSound.stop();
+            crashSound.play();
+            endGame();
 
-    if (crashCatus()) {
-        endGame();
-
-    } else {
-
-        if (32 in keysDown || 38 in keysDown) {
-            setFlyingDino();
-        }
-
-        cactusX -= 10;
-        if (cactusX === MIN_CACTUS_X) {
-            cactusX = MAX_CACTUS_X;
-        }
-    }
-    // Check dieu kien de no nhay len roi rot xuong  
-    if (isFlying) {
-
-        if (isFlyingUp) {
-            dinoY -= 15;
-
-            if (dinoY <= MIN_DINO_Y) {
-                isFlyingUp = false;
-            }
         } else {
-            dinoY += 10;
+            // move cactus & background
+            bg1X -= 10;
+            bg2X -= 10;
+            cactus1X -= 10;
+            cactus2X -= 10;
 
-            if (dinoY >= MAX_DINO_Y) {
-                isFlying = false;
+            if (cactus1X <= MIN_CACTUS_X) {
+                cactus1X = Math.floor(Math.random() * (MAX_CACTUS_X - 1000 + 1) + 1000);
+            }
+
+            if (cactus2X <= MIN_CACTUS_X) {
+                cactus2X = Math.floor(Math.random() * (MAX_CACTUS_X - 1000 + 1) + 1000);
+            }
+
+            if (bg1X === MIN_BG_X) {
+                bg1X = MAX_BG_X;
+            }
+
+            if (bg2X === MIN_BG_X) {
+                bg2X = MAX_BG_X;
+            }
+
+            // jump
+            if (32 in keysDown) {
+                setFlyingDino();
+            }
+
+            // check jump up & down
+            if (isFlying) {
+
+                if (isFlyingUp) {
+                    dinoY -= 15;
+
+                    if (dinoY <= MIN_DINO_Y) {
+                        isFlyingUp = false;
+                    }
+                } else {
+                    dinoY += 10;
+
+                    if (dinoY >= MAX_DINO_Y) {
+                        isFlying = false;
+                    }
+                }
             }
         }
+    } else {
+        if (32 in keysDown || 38 in keysDown) {
+            startGame();
+        }
+    }
+};
+
+function crashCactus() {
+    let handX = DINO_WIDTH - DINO_X;
+    let handY = dinoY + ((DINO_HEIGHT - dinoY) / 2);
+    let legX = DINO_X + ((DINO_WIDTH - DINO_X) / 2);
+    let legY = dinoY + DINO_HEIGHT;
+
+    if (checkPointInside(handX, handY) || checkPointInside(legX, legY)) {
+        return true;
     }
 
-    // let cactusCenterTop = (cactusX + DINO_WIDTH) / 2;
+    return false;
+}
 
-    // if (DINO_X < cactusX &&
-    //     cactusX < DINO_X + DINO_WIDTH) {
+function checkPointInside(x, y) {
+    if (CACTUS_Y < y && y < (CACTUS_Y + CACTUS_HEIGHT)) {
+        if (cactus1X < x && x < (cactus1X + CACTUS_WIDTH)) {
+            return true;
 
-    //     if (CACTUS_Y < dinoY + DINO_HEIGHT &&
-    //         dinoY + DINO_HEIGHT < CACTUS_Y + CACTUS_HEIGHT) {
-
-    //         endGame();
-    //     }
-    // }
-    // crashCatus();
-    // endGame();
-};
+        } else if (cactus2X < x && x < (cactus2X + CACTUS_WIDTH)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function setFlyingDino() {
     if (!isFlying) {
         isFlying = true;
         isFlyingUp = true;
+        jumpSound.play();
     }
 }
 
-
-
 function render() {
-    if (backgroundReady) {
-        ctx.drawImage(backgroundImg, 0, 0, 800, 600);
+    if (background1Ready) {
+        ctx.drawImage(backgroundImg1, bg1X, BG_Y, BG_WIDTH, BG_HEIGTH);
+    }
+
+    if (background2Ready) {
+        ctx.drawImage(backgroundImg2, bg2X, BG_Y, BG_WIDTH, BG_HEIGTH);
     }
 
     if (stepLeft) {
@@ -152,10 +244,18 @@ function render() {
         }
     }
 
-    if (cactusReady) {
-        ctx.drawImage(cactusImg, cactusX, CACTUS_Y, CACTUS_WIDTH, CACTUS_HEIGHT);
+    if (cactus1Ready) {
+        ctx.drawImage(cactus1Img, cactus1X, CACTUS_Y, CACTUS_WIDTH, CACTUS_HEIGHT);
     }
-    ctx.fillText(`Score: ${elapsedTime}`, 20, 100);
+
+    if (cactus2Ready) {
+        ctx.drawImage(cactus2Img, cactus2X, CACTUS_Y, CACTUS_WIDTH, CACTUS_HEIGHT);
+    }
+
+    ctx.font = "18px Georgia";
+    ctx.fillText(`Best Score: ${bestScore}`, 335, 100);
+    ctx.fillText(`Score: ${score}`, 650, 100);
+    ctx.fillText(`Press 'Spacebar' to Play`, 300, 500);
 };
 
 function main() {
@@ -164,70 +264,17 @@ function main() {
     requestAnimationFrame(main);
 };
 
-//----- TO DO LIST -----
-
-// Update at 17:00: 
-
-// 1. End game
-
 function startGame() {
-    this.interval = setInterval(update, 100);
-}
-
-function crashCatus() {
-    let crash = false;
-    let cactusCenterTop = (cactusX + DINO_WIDTH) / 2;
-
-    if (DINO_X < cactusX &&
-        cactusX < DINO_X + DINO_WIDTH) {
-
-        if (CACTUS_Y < dinoY + DINO_HEIGHT &&
-            dinoY + DINO_HEIGHT < CACTUS_Y + CACTUS_HEIGHT) {
-            crash = true;
-        }
-        return crash;
-    }
-    console.log("Test");
-
+    startTime = Date.now();
+    cactus1X = MAX_CACTUS_X;
+    cactus2X = MAX_CACTUS_X;
+    score = 0;
+    isPlaying = true;
 }
 
 function endGame() {
-    clearInterval(this.interval);
-    console.log("die");
-    // alert("Game over");
-
+    isPlaying = false;
+    if (score > bestScore) {
+        bestScore = score;
+    }
 }
-
-// 2. Reset --> Update at 17:00: Not work
-
-function resetAll() {
-    const DINO_X = 10;
-    const DINO_WIDTH = 100;
-    const DINO_HEIGHT = 110;
-    const MIN_DINO_Y = 100;
-    const MAX_DINO_Y = 300;
-    let dinoY = 300;
-    let isFlying = false;
-    let isFlyingUp = true;
-
-    const CACTUS_Y = 330;
-    const CACTUS_WIDTH = 50;
-    const CACTUS_HEIGHT = 90;
-    const MIN_CACTUS_X = -50;
-    const MAX_CACTUS_X = 850;
-    let cactusX = 850;
-}
-
-// 3. Make background like moving
-
-// 4. Add score 
-
-// function scoreCounting() {
-//     elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-// }
-
-// function scoreFinishing() {
-
-// }
-
-// 5. Add sound
